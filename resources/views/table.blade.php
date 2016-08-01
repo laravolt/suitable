@@ -10,14 +10,9 @@
 
         </div>
         <div class="right menu">
-            <div class="ui right aligned item">
-                <form method="GET" action="">
-                    <div class="ui transparent icon input">
-                        <input class="prompt" name="search" value="{{ request('search') }}" type="text" placeholder="@lang('suitable::suitable.search_placeholder')">
-                        <i class="search link icon"></i>
-                    </div>
-                </form>
-            </div>
+            @if($showSearch)
+                @include('suitable::toolbars.search')
+            @endif
         </div>
     </div>
 
@@ -36,8 +31,12 @@
     <table class="ui table attached">
         <thead>
         <tr>
-            @foreach($headers as $text)
-                <th>{!! $text !!}</th>
+            @foreach($headers as $header)
+                @if($header->isSortable())
+                    {!! $header->getHtml() !!}
+                @else
+                    <th>{!! $header->getHtml() !!}</th>
+                @endif
             @endforeach
         </tr>
         </thead>
@@ -58,14 +57,16 @@
         </tbody>
     </table>
 
+    @if($showPagination)
     <div class="ui menu bottom attached">
         @if(!$collection->isEmpty())
             <div class="item borderless">
                 <small>{{ $builder->summary() }}</small>
             </div>
-            {!! $collection->links('suitable::pagination') !!}
+            {!! $collection->appends(request()->input())->links('suitable::pagination') !!}
         @endif
     </div>
+    @endif
 </div>
 
 @push(config('suitable.script_placeholder'))

@@ -1,6 +1,7 @@
 <?php
 namespace Laravolt\Suitable;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\View;
 use Laravolt\Suitable\Contracts\Component;
 
@@ -21,6 +22,10 @@ class Builder
 
     protected $baseRoute = null;
 
+    protected $showSearch = true;
+
+    protected $showPagination = false;
+
     /**
      * Builder constructor.
      */
@@ -32,6 +37,10 @@ class Builder
     public function source($collection)
     {
         $this->collection = $collection;
+
+        if ($collection instanceof LengthAwarePaginator) {
+            $this->showPagination = true;
+        }
 
         return $this;
     }
@@ -60,6 +69,13 @@ class Builder
         return $this;
     }
 
+    public function search($showSearch)
+    {
+        $this->showSearch = $showSearch;
+
+        return $this;
+    }
+
     public function addToolbar($html)
     {
         $this->toolbars[] = $html;
@@ -77,13 +93,15 @@ class Builder
     public function render()
     {
         $data = [
-            'collection' => $this->collection,
-            'id'         => $this->id,
-            'headers'    => $this->headers,
-            'fields'     => $this->fields,
-            'title'      => $this->title,
-            'toolbars'   => $this->toolbars,
-            'builder'    => $this
+            'collection'     => $this->collection,
+            'id'             => $this->id,
+            'headers'        => $this->headers,
+            'fields'         => $this->fields,
+            'title'          => $this->title,
+            'showSearch'     => $this->showSearch,
+            'showPagination' => $this->showPagination,
+            'toolbars'       => $this->toolbars,
+            'builder'        => $this
         ];
 
         return View::make('suitable::table', $data)->render();
@@ -91,24 +109,25 @@ class Builder
 
     public function renderCell($field, $data)
     {
-        if(array_has($field, 'raw') && $field['raw'] instanceof \Closure) {
+        if (array_has($field, 'raw') && $field['raw'] instanceof \Closure) {
             return call_user_func($field['raw'], $data);
         }
 
-        if(array_has($field, 'field')) {
+        if (array_has($field, 'field')) {
             return $data[$field['field']];
         }
 
-        if(array_has($field, 'present')) {
+        if (array_has($field, 'present')) {
             return $data->present($field['present']);
         }
 
-        if(array_has($field, 'view')) {
+        if (array_has($field, 'view')) {
             return render($field['view'], compact('data'));
         }
 
-        if($field instanceof Component) {
+        if ($field instanceof Component) {
             $field->boot($this);
+
             return $field->cell($data);
         }
 
@@ -117,19 +136,28 @@ class Builder
 
     protected function getHeader($column)
     {
-        if(is_array($column)) {
-            return array_get($column, 'header', '');
+        $header = new Header();
+
+        $sortable = array_get($column, 'sortable', false);
+        if ($sortable) {
+            unset($column['sortable']);
+            $html = Sortable::link([array_get($column, 'field', ''), array_get($column, 'header', '')]);
+        } elseif (is_array($column)) {
+            $html = array_get($column, 'header', '');
+        } elseif ($column instanceof Component) {
+            $html = $column->header();
         }
 
-        if ($column instanceof Component) {
-            return $column->header();
-        }
+        $header->setSortable($sortable);
+        $header->setHtml($html);
+
+        return $header;
     }
 
     public function getRoute($verb, $param = null)
     {
-        if($this->baseRoute) {
-            return route($this->baseRoute . '.' . $verb, $param);
+        if ($this->baseRoute) {
+            return route($this->baseRoute.'.'.$verb, $param);
         }
 
         return false;
