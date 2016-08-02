@@ -61,9 +61,9 @@
     <div class="ui menu bottom attached">
         @if(!$collection->isEmpty())
             <div class="item borderless">
-                <small>{{ $builder->summary() }}</small>
+                <small>{{ sui_pagination($collection)->summary() }}</small>
             </div>
-            {!! $collection->appends(request()->input())->links('suitable::pagination') !!}
+            {!! sui_pagination($collection->appends(request()->input()))->render('attached right') !!}
         @endif
     </div>
     @endif
