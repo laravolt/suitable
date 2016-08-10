@@ -104,7 +104,7 @@ class Builder
             'builder'        => $this
         ];
 
-        return View::make(config('suitable.table'), $data)->render();
+        return View::make('suitable::table', $data)->render();
     }
 
     public function renderCell($field, $data)
