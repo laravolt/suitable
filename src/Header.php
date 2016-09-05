@@ -55,7 +55,7 @@ class Header
     public function renderAttributes()
     {
         $html = '';
-        foreach ($this->attributes as $attribute => $value) {
+        foreach ((array)$this->attributes as $attribute => $value) {
             $html .= " {$attribute}=\"{$value}\"";
         }
 
