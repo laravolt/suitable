@@ -5,8 +5,21 @@ use Illuminate\Support\Facades\View;
 
 class Checkall implements ColumnInterface
 {
+    private $filldata;
 
     protected $headerAttributes = ['width' => '50px'];
+
+    public function __construct($filldata = array())
+    {
+        $this->filldata = $filldata;
+    }
+
+    private function isChecked($data){
+        if (!$this->filldata) {
+            return false;
+        }
+        return in_array($data->id, $this->filldata);
+    }
 
     public function header()
     {
@@ -20,6 +33,7 @@ class Checkall implements ColumnInterface
 
     public function cell($data)
     {
-        return View::make('suitable::columns.checkall.cell', compact('data'))->render();
+        $checked = $this->isChecked($data);
+        return View::make('suitable::columns.checkall.cell', compact('data', 'checked'))->render();
     }
 }
