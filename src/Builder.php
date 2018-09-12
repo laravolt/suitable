@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\View;
 use Laravolt\Suitable\Columns\ColumnInterface;
 use Laravolt\Suitable\Export\Excel;
 use Laravolt\Suitable\Export\Pdf;
-use PDF2;
 
 class Builder
 {
