@@ -2,13 +2,19 @@
 
 namespace Laravolt\Suitable;
 
+use App\Models\Organizations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\View;
 use Laravolt\Suitable\Columns\ColumnInterface;
+use Laravolt\Suitable\Export\Excel;
+use Laravolt\Suitable\Export\Pdf;
+use PDF2;
 
 class Builder
 {
     protected $collection = null;
+
+    protected $query = null;
 
     protected $id = null;
 
@@ -25,6 +31,8 @@ class Builder
     protected $baseRoute = null;
 
     protected $search = null;
+
+    protected $buttons = null;
 
     protected $showPagination = false;
 
@@ -47,11 +55,13 @@ class Builder
         }
     }
 
-    public function source($collection)
+    public function source($query)
     {
-        $this->collection = $collection;
+        $this->query = clone $query;
 
-        if ($collection instanceof LengthAwarePaginator) {
+        $this->collection = $query->paginate();
+
+        if ($this->collection instanceof LengthAwarePaginator) {
             $this->showPagination = true;
         }
 
@@ -135,6 +145,44 @@ class Builder
         return $this;
     }
 
+    public function buttons(array $buttons)
+    {
+        foreach ($buttons as $k => $button) {
+            $button_result[$k]['key'] = $button;
+
+            switch (strtolower($button)) {
+                case 'pdf':
+                    $button_result[$k] = [
+                        'title' => 'PDF',
+                        'url' => '?format=pdf'
+                    ];
+
+                    break;
+                case 'excel':
+                    $button_result[$k] = [
+                        'title' => 'Excel',
+                        'url' => '?format=excel'
+                    ];
+                    break;
+                case 'csv':
+                    $button_result[$k] = [
+                        'title' => 'Csv',
+                        'url' => '?format=csv'
+                    ];
+                    break;
+                default:
+                    $button_result[$k] = [
+                        'title' => strtoupper($buttons),
+                        'url'   => ''
+                    ];
+                    break;
+            }
+        }
+
+        $this->buttons = $button_result;
+        return $this;
+    }
+
     public function render()
     {
         $data = [
@@ -145,6 +193,7 @@ class Builder
             'fields'     => $this->fields,
             'title'      => $this->title,
             'search'     => $this->search,
+            'buttons'    => $this->buttons,
 
             // @deprecated, use search above
             'showSearch' => $this->search,
@@ -156,6 +205,25 @@ class Builder
             'row'            => $this->row,
             'builder'        => $this,
         ];
+
+        if (request('format')) {
+            $data['collection'] = $this->query->get();
+            switch (request('format')) {
+                case 'pdf':
+                    new Pdf($data);
+
+                    break;
+                case 'excel':
+                    new Excel($data);
+
+                    break;
+                case 'csv':
+                    new Excel($data, 'csv');
+
+                    break;
+            }
+        }
+
 
         return View::make('suitable::table', $data)->render();
     }
@@ -172,10 +240,6 @@ class Builder
 
         if (array_has($field, 'field')) {
             return array_get($data, $field['field']);
-        }
-
-        if (array_has($field, 'data')) {
-            return data_get($data, $field['data']);
         }
 
         if (array_has($field, 'present')) {
@@ -225,7 +289,7 @@ class Builder
                 $field = $sortable;
             }
 
-            $html = SortableLink::make([$field, array_get($column, 'header', '')]);
+            $html = Sortable::link([$field, array_get($column, 'header', '')]);
         } elseif (is_array($column)) {
             $html = array_get($column, 'header', '');
         } elseif ($column instanceof ColumnInterface) {

@@ -1,6 +1,6 @@
 <div id="{{ $id }}">
 
-    @if($title || $search)
+    @if($title || $search || $buttons)
     <div class="ui menu top attached">
         @if($title)
             <div class="item borderless">
@@ -8,7 +8,13 @@
             </div>
         @endif
         <div class="item borderless">
-
+            @if ($buttons)
+                {{--<div class="ui buttons">--}}
+                @foreach($buttons as $button)
+                    <a style="margin-right: 5px" href="{{ $button['url'] }}" class="medium ui button">{{ $button['title'] }}</a>
+                @endforeach
+                {{--</div>--}}
+            @endif
         </div>
         <div class="right menu">
             @if($search)
@@ -38,7 +44,7 @@
         </div>
     @endif
 
-    <div class="ui segment {{ (!$title && !$search) ? 'top':'' }} {{ (!$showPagination) ? 'bottom':'' }} attached" style="padding: 0; overflow-y: auto">
+    <div class="ui segment {{ (!$title && !$search) ? 'top':'' }} attached" style="padding: 0; overflow-y: auto">
         <table class="ui table {{ $tableClass }}" style="border: 0 none;">
             <thead>
             <tr>
