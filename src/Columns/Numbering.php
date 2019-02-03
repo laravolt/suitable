@@ -7,7 +7,9 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 class Numbering implements ColumnInterface
 {
     protected $headerAttributes = ['class' => 'numbering center aligned'];
+
     protected $cellAttributes = ['class' => 'numbering'];
+
     protected $header = '';
 
     /**
@@ -36,10 +38,14 @@ class Numbering implements ColumnInterface
     public function cell($cell, $collection, $loop)
     {
         if ($collection instanceof LengthAwarePaginator) {
-            return (($collection->currentPage() - 1 ) * $collection->perPage() ) + $loop->iteration;
+            return (($collection->currentPage() - 1) * $collection->perPage()) + $loop->iteration;
         }
 
         return $loop->iteration;
     }
 
+    public function sortable()
+    {
+        return null;
+    }
 }
