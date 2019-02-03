@@ -232,13 +232,9 @@ class Builder
             $html = $column->header();
             $headerAttributes = $column->headerAttributes();
 
-            $sortable = (method_exists($column, 'sortable')) ? $column->sortable() : null;
-            if ($sortable) {
-                if (is_string($sortable)) {
-                    $field = $sortable;
-                }
-
-                $html = SortableLink::make([$field, $html]);
+            $sortable = $column->sortable();
+            if (is_string($sortable)) {
+                $html = SortableLink::make([$sortable, $html]);
             }
         } else {
             throw new \Exception('Invalid header value');

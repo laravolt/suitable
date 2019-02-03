@@ -42,4 +42,9 @@ class Numbering implements ColumnInterface
         return $loop->iteration;
     }
 
+    public function sortable()
+    {
+        return null;
+    }
+
 }

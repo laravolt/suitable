@@ -122,4 +122,9 @@ class RestfulButton implements ColumnInterface
 
         return config('suitable.restful_button.delete_confirmation');
     }
+
+    public function sortable()
+    {
+        return null;
+    }
 }
