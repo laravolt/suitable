@@ -231,6 +231,15 @@ class Builder
         } elseif ($column instanceof ColumnInterface) {
             $html = $column->header();
             $headerAttributes = $column->headerAttributes();
+
+            $sortable = (method_exists($column, 'sortable')) ? $column->sortable() : null;
+            if ($sortable) {
+                if (is_string($sortable)) {
+                    $field = $sortable;
+                }
+
+                $html = SortableLink::make([$field, $html]);
+            }
         } else {
             throw new \Exception('Invalid header value');
         }
