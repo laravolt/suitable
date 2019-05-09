@@ -34,12 +34,14 @@ class Builder
 
     protected $row;
 
+    protected $format;
+
     /**
      * Builder constructor.
      */
     public function __construct()
     {
-        $this->id = 'suitable' . str_random();
+        $this->id = 'suitable'.str_random();
         $this->search = config('suitable.query_string.search');
 
         if (view()->exists($view = config('suitable.pagination_view'))) {
@@ -75,6 +77,10 @@ class Builder
     public function columns(array $columns)
     {
         foreach ($columns as $column) {
+            // filter column based on supported format
+            if (($column instanceof ColumnInterface) && ($column->hideOn($this->format))) {
+                continue;
+            }
             $this->headers[] = $this->getHeader($column);
             $this->fields[] = $column;
         }
@@ -85,6 +91,13 @@ class Builder
     public function title($title)
     {
         $this->title = $title;
+
+        return $this;
+    }
+
+    public function format($format)
+    {
+        $this->format = $format;
 
         return $this;
     }
@@ -154,10 +167,11 @@ class Builder
             'toolbars'       => $this->toolbars,
             'tableClass'     => $this->tableClass,
             'row'            => $this->row,
+            'format'         => $this->format,
             'builder'        => $this,
         ];
 
-        return View::make('suitable::table', $data)->render();
+        return View::make($this->getView(), $data)->render();
     }
 
     public function renderCell($field, $data, $collection, $loop)
@@ -230,6 +244,7 @@ class Builder
             $html = array_get($column, 'header', '');
         } elseif ($column instanceof ColumnInterface) {
             $html = $column->header();
+
             $headerAttributes = $column->headerAttributes();
 
             $sortable = $column->sortable();
@@ -281,5 +296,15 @@ class Builder
         $start = (request('page', 1) - 1) * $this->collection->perPage();
 
         return $start + $index;
+    }
+
+    protected function getView()
+    {
+        $view = 'suitable::container';
+        if ($this->format === 'pdf') {
+            $view = 'suitable::table';
+        }
+
+        return $view;
     }
 }

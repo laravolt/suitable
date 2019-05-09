@@ -4,7 +4,7 @@ namespace Laravolt\Suitable\Columns;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class Numbering implements ColumnInterface
+class Numbering extends Column implements ColumnInterface
 {
     protected $headerAttributes = ['class' => 'numbering center aligned'];
 
@@ -20,20 +20,6 @@ class Numbering implements ColumnInterface
         $this->header = $header;
     }
 
-    public function header()
-    {
-        return $this->header;
-    }
-
-    public function headerAttributes()
-    {
-        return $this->headerAttributes;
-    }
-
-    public function cellAttributes($cell)
-    {
-        return $this->cellAttributes;
-    }
 
     public function cell($cell, $collection, $loop)
     {
